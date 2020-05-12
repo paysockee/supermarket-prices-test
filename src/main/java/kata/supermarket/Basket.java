@@ -17,6 +17,10 @@ public class Basket {
         this.items.add(item);
     }
 
+    public void apply(final Discount discount) {
+        //
+    }
+
     List<Item> items() {
         return Collections.unmodifiableList(items);
     }

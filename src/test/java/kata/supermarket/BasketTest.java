@@ -23,6 +23,16 @@ class BasketTest {
         assertEquals(new BigDecimal(expectedTotal), basket.total());
     }
 
+    @DisplayName("basket provides its discounted value when containing...")
+    @MethodSource
+    @ParameterizedTest(name = "{0}")
+    void basketProvidesDiscountedValue(String description, String expectedTotal, Iterable<Item> items, Iterable<Discount> discounts) {
+        final Basket basket = new Basket();
+        items.forEach(basket::add);
+        discounts.forEach(basket::apply);
+        assertEquals(new BigDecimal(expectedTotal), basket.total());
+    }
+
     static Stream<Arguments> basketProvidesTotalValue() {
         return Stream.of(
                 noItems(),
@@ -30,6 +40,16 @@ class BasketTest {
                 multipleItemsPricedPerUnit(),
                 aSingleItemPricedByWeight(),
                 multipleItemsPricedByWeight()
+        );
+    }
+
+    static Stream<Arguments> basketProvidesDiscountedValue() {
+        return Stream.of(
+                noItemsNoDiscounts(),
+                noItemsTwoForOne(),
+                aSingleItemTwoForOne(),
+                twoSameItemsPricedPerUnitTwoForOne(),
+                threeSameItemsPricedPerUnitTwoForOne()
         );
     }
 
@@ -48,12 +68,35 @@ class BasketTest {
                 Arrays.asList(aPackOfDigestives(), aPintOfMilk()));
     }
 
+    private static Arguments twoSameItemsPricedPerUnitTwoForOne() {
+        return Arguments.of("two items priced per unit with Two For One discount", "1.55",
+                Arrays.asList(aPackOfDigestives(), aPackOfDigestives()),
+                Collections.singleton(twoForOneDiscount()));
+    }
+
+    private static Arguments threeSameItemsPricedPerUnitTwoForOne() {
+        return Arguments.of("three items priced per unit with Two For One discount", "3.10",
+                Arrays.asList(aPackOfDigestives(), aPackOfDigestives(), aPackOfDigestives()), Collections.singleton(twoForOneDiscount()));
+    }
+
     private static Arguments aSingleItemPricedPerUnit() {
         return Arguments.of("a single item priced per unit", "0.49", Collections.singleton(aPintOfMilk()));
     }
 
+    private static Arguments aSingleItemTwoForOne() {
+        return Arguments.of("a single item priced per unit", "0.49", Collections.singleton(aPintOfMilk()), Collections.singleton(new TwoForOne()));
+    }
+
     private static Arguments noItems() {
         return Arguments.of("no items", "0.00", Collections.emptyList());
+    }
+
+    private static Arguments noItemsNoDiscounts() {
+        return Arguments.of("no items and no discounts", "0.00", Collections.emptyList(), Collections.emptyList());
+    }
+
+    private static Arguments noItemsTwoForOne() {
+        return Arguments.of("no items with Two For One discount", "0.00", Collections.emptyList(), Collections.singleton(new TwoForOne()));
     }
 
     private static Item aPintOfMilk() {
@@ -62,6 +105,10 @@ class BasketTest {
 
     private static Item aPackOfDigestives() {
         return new Product(new BigDecimal("1.55")).oneOf();
+    }
+
+    private static Discount twoForOneDiscount() {
+        return new TwoForOne();
     }
 
     private static WeighedProduct aKiloOfAmericanSweets() {

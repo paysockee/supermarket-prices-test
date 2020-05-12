@@ -52,10 +52,13 @@ public class Basket {
          *  which provides that functionality.
          */
         private BigDecimal discounts() {
+            // initialise the discounts
             discounts.forEach(Discount::init);
 
+            // pass all the products in the basket through all the discounts
             discounts.stream().<Consumer<? super Item>>map(d -> d::apply).forEach(items::forEach);
 
+            // calculate and return the sum of discounts
             return discounts.stream().map(Discount::getDiscount).reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 

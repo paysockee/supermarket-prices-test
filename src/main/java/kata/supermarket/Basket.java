@@ -2,15 +2,16 @@ package kata.supermarket;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 public class Basket {
     private final List<Item> items;
+    private final Set<Discount> discounts;
 
     public Basket() {
         this.items = new ArrayList<>();
+        this.discounts = new HashSet<>();
     }
 
     public void add(final Item item) {
@@ -18,7 +19,7 @@ public class Basket {
     }
 
     public void apply(final Discount discount) {
-        //
+        this.discounts.add(discount);
     }
 
     List<Item> items() {
@@ -51,7 +52,11 @@ public class Basket {
          *  which provides that functionality.
          */
         private BigDecimal discounts() {
-            return BigDecimal.ZERO;
+            discounts.forEach(Discount::init);
+
+            discounts.stream().<Consumer<? super Item>>map(d -> d::apply).forEach(items::forEach);
+
+            return discounts.stream().map(Discount::getDiscount).reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
         private BigDecimal calculate() {
